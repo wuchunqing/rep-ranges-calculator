@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rep Ranges Calculator — Sets, Reps &amp; Rest by Training Goal</title>
+  <meta name="description" content="Free rep ranges calculator. Get optimal sets, reps, rest periods &amp; %1RM intensity for strength, hypertrophy, power &amp; endurance — inspired by NSCA, RP &amp; Muscle &amp; Strength training charts.">
+  <meta name="google-site-verification" content="uz_j2c_UOuyTXyW6W87egnN8gHCyfSqm3kyY_XEx62w" />
+  <meta name="theme-color" content="#7C3AED">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{
+      --primary:#7C3AED;--primary-dark:#6D28D9;--primary-light:#EDE9FE;
+      --accent:#F59E0B;--ink:#4C1D95;--muted:#64748B;--line:#E2E8F0;
+      --bg:#FAF5FF;--card:#fff;--radius:16px;
+      --shadow:0 8px 32px rgba(124,58,237,.09);
+      --ok:#059669;--warn:#D97706;--alert:#DC2626;
+      --zone-strength:#EF4444;--zone-power:#F97316;--zone-hypertrophy:#8B5CF6;
+      --zone-endurance:#06B6D4;--zone-general:#64748B;
+    }
+    body{margin:0;font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--bg);color:#1E293B;line-height:1.65;font-size:15px;overflow:hidden}
+    #app-shell{position:fixed;inset:0;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;z-index:2147483647;background:var(--bg);pointer-events:auto}
+    #main-app{position:relative;z-index:100;pointer-events:auto}
+    #calc-zone,#aux-panel{position:relative;pointer-events:auto}
+    .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:4px;position:relative;z-index:100000}
+    .btn-main,.btn-ghost{position:relative;z-index:100001;pointer-events:auto!important;cursor:pointer}
+    .card,.sidebar-card,details,.input,.select,.btn-main,.btn-ghost,summary,label,header,footer,section.hero,.aux-grid,.zone-table,.goal-cards{position:relative;pointer-events:auto!important;touch-action:manipulation}
+    .aux-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px}
+    .aux-grid .sidebar-card{margin:0}
+    .container{max-width:1080px;margin:0 auto;padding:0 20px}
+    header{background:rgba(255,255,255,.93);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:16px 0;position:sticky;top:0;z-index:50}
+    .logo{font-size:20px;font-weight:800;color:var(--primary);text-decoration:none}
+    .hero{padding:40px 0 22px;text-align:center;background:linear-gradient(165deg,#EDE9FE 0%,#FEF3C7 45%,#FAF5FF 100%)}
+    .hero-badge{display:inline-block;background:var(--primary-light);color:var(--primary-dark);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:6px 14px;border-radius:999px;border:1px solid #DDD6FE;margin-bottom:12px}
+    .hero h1{font-size:clamp(26px,4vw,36px);font-weight:800;letter-spacing:-.03em;margin-bottom:8px;color:#4C1D95}
+    .hero p{max-width:640px;margin:0 auto;color:var(--muted);font-size:15px}
+    .layout{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:24px;align-items:start;margin-bottom:32px;isolation:isolate}
+    #interactive-layer{grid-column:1;display:flex;flex-direction:column;gap:20px;position:relative;z-index:99999;pointer-events:auto;isolation:isolate;transform:translateZ(0)}
+    #interactive-layer *{pointer-events:auto}
+    .layout>aside{grid-column:2;position:relative;z-index:1;overflow:hidden;align-self:start}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);padding:28px;position:relative;z-index:100;height:auto}
+    .card h2{font-size:18px;font-weight:800;margin-bottom:4px;color:#4C1D95}
+    .card .sub{font-size:13px;color:var(--muted);margin-bottom:20px}
+    .form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:16px}
+    label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:5px}
+    .input,.select{width:100%;padding:12px 13px;border:1.5px solid var(--line);border-radius:11px;font:inherit;font-size:14px;font-weight:600;background:#fff;outline:none;pointer-events:auto!important;-webkit-user-select:text;user-select:text}
+    .select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath fill='%2364748B' d='M0 0l6 8 6-8z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+    .input:focus,.select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(124,58,237,.12)}
+    .hint{font-size:12px;color:var(--muted);padding:11px 12px;background:#F8FAFC;border-radius:10px;border-left:3px solid var(--accent);margin-bottom:16px}
+    .sec-label{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--primary-dark);margin:18px 0 10px}
+    .unit-toggle{display:flex;gap:8px;margin-bottom:16px}
+    .unit-btn{flex:1;padding:10px;border:1.5px solid var(--line);border-radius:10px;background:#fff;font:inherit;font-size:13px;font-weight:700;cursor:pointer;color:var(--muted)}
+    .unit-btn.active{border-color:var(--primary);background:var(--primary-light);color:var(--primary-dark)}
+    .goal-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+    .goal-card{padding:12px;border:1.5px solid var(--line);border-radius:12px;cursor:pointer;background:#fff;text-align:center;transition:border-color .15s,background .15s}
+    .goal-card input{display:none}
+    .goal-card .gc-icon{font-size:22px;margin-bottom:4px}
+    .goal-card .gc-name{font-size:12px;font-weight:800;color:#475569}
+    .goal-card .gc-reps{font-size:10px;color:var(--muted);margin-top:2px}
+    .goal-card:has(input:checked){border-color:var(--primary);background:var(--primary-light)}
+    .goal-card:has(input:checked) .gc-name{color:var(--primary-dark)}
+    .btn-main{flex:1;min-width:140px;padding:14px 20px;background:linear-gradient(135deg,#8B5CF6,#7C3AED);color:#fff;border:none;border-radius:11px;font:inherit;font-size:15px;font-weight:800;cursor:pointer;touch-action:manipulation}
+    .btn-main:hover{filter:brightness(1.05)}
+    .btn-ghost{padding:14px 20px;border:1.5px solid var(--line);border-radius:11px;background:#fff;font:inherit;font-size:14px;font-weight:700;cursor:pointer;color:var(--muted);touch-action:manipulation}
+    .results{display:none;margin:0;padding:0;border:0;height:0;overflow:hidden}
+    .results.show{display:block;margin-top:24px;padding-top:22px;border-top:1px solid var(--line);height:auto;overflow:visible}
+    .result-hero{text-align:center;color:#fff;border-radius:18px;padding:26px;margin-bottom:16px}
+    .result-hero.strength{background:linear-gradient(145deg,#EF4444,#DC2626)}
+    .result-hero.power{background:linear-gradient(145deg,#F97316,#EA580C)}
+    .result-hero.hypertrophy{background:linear-gradient(145deg,#8B5CF6,#7C3AED)}
+    .result-hero.endurance{background:linear-gradient(145deg,#06B6D4,#0891B2)}
+    .result-hero.general{background:linear-gradient(145deg,#64748B,#475569)}
+    .result-hero.fatloss{background:linear-gradient(145deg,#10B981,#059669)}
+    .result-hero .lbl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;opacity:.92}
+    .result-hero .val{font-size:clamp(28px,6vw,44px);font-weight:900;line-height:1.15;margin:8px 0 4px}
+    .result-hero .sub{font-size:14px;opacity:.9}
+    .result-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+    .result-cell{background:#F8FAFC;border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center}
+    .result-cell .k{font-size:10px;font-weight:700;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+    .result-cell .v{font-size:14px;font-weight:800;color:var(--primary-dark)}
+    .zone-bar{display:flex;height:28px;border-radius:999px;overflow:hidden;border:1px solid var(--line);margin:14px 0 8px}
+    .zone-seg{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.2)}
+    .zone-seg.str{background:var(--zone-strength)}
+    .zone-seg.pow{background:var(--zone-power)}
+    .zone-seg.hyp{background:var(--zone-hypertrophy)}
+    .zone-seg.end{background:var(--zone-endurance)}
+    .zone-marker{position:relative;height:24px;margin-bottom:16px}
+    .zone-marker span{position:absolute;top:0;font-size:11px;font-weight:800;padding:4px 10px;border-radius:999px;background:var(--primary);color:#fff;white-space:nowrap;transform:translateX(-50%)}
+    .zone-table{width:100%;border-collapse:collapse;font-size:13px;margin:12px 0}
+    .zone-table th{text-align:left;font-size:10px;font-weight:800;text-transform:uppercase;color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--line)}
+    .zone-table td{padding:9px 10px;border-bottom:1px solid var(--line);font-weight:600}
+    .zone-table tr.active{background:var(--primary-light)}
+    .zone-table tr.active td{font-weight:800;color:var(--primary-dark)}
+    .zone-table td:last-child{text-align:right}
+    .sample-workout{background:#F8FAFC;border:1px solid var(--line);border-radius:14px;padding:16px;margin:16px 0}
+    .sample-workout h3{font-size:14px;font-weight:800;margin-bottom:10px;color:#4C1D95}
+    .sample-workout .exercise{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed var(--line);font-size:13px}
+    .sample-workout .exercise:last-child{border:0}
+    .sample-workout .ex-name{font-weight:700}
+    .sample-workout .ex-detail{color:var(--muted);font-weight:600}
+    .prog-list{display:flex;flex-direction:column;gap:8px;margin:16px 0}
+    .prog-item{display:flex;gap:12px;padding:12px 14px;border-radius:12px;border:1px solid var(--line);font-size:13px;align-items:flex-start;background:#F8FAFC}
+    .prog-item .icon{width:28px;height:28px;border-radius:50%;background:var(--primary);color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .prog-item .pt{font-weight:800;margin-bottom:2px}
+    .prog-item .pd{color:var(--muted);font-size:12px;line-height:1.5}
+    .summary-table{width:100%;border-collapse:collapse;font-size:14px}
+    .summary-table td{padding:9px 0;border-bottom:1px solid var(--line)}
+    .summary-table td:first-child{color:var(--muted);font-weight:600;width:52%}
+    .summary-table td:last-child{font-weight:700;text-align:right}
+    .note-box,.tip-box,.warn-box{margin-top:12px;padding:12px;border-radius:10px;font-size:12px;line-height:1.6}
+    .note-box{background:#FFFBEB;border:1px solid #FDE68A;color:#92400E}
+    .tip-box{background:var(--primary-light);border:1px solid #DDD6FE;color:var(--primary-dark);font-size:13px}
+    .sidebar{display:flex;flex-direction:column;gap:14px;position:relative;z-index:1;overflow:hidden;pointer-events:none}
+    .sidebar .sidebar-card,.sidebar .sidebar-card *,.sidebar .btn-ghost,.sidebar .ad-sidebar,.sidebar .ad-sidebar iframe{pointer-events:auto}
+    .sidebar-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px}
+    .sidebar-card h3{font-size:14px;font-weight:800;margin-bottom:10px}
+    .ref-table{width:100%;font-size:12px;border-collapse:collapse}
+    .ref-table td{padding:6px 0;border-bottom:1px dashed var(--line)}
+    .ref-table td:last-child{text-align:right;font-weight:700}
+    details{background:#fff;border:1px solid var(--line);border-radius:12px;margin-bottom:8px}
+    details[open]{border-color:var(--primary)}
+    summary{padding:13px 16px;font-weight:700;cursor:pointer;list-style:none;font-size:14px}
+    summary::-webkit-details-marker{display:none}
+    details p{padding:0 16px 14px;font-size:13px;color:var(--muted);line-height:1.65}
+    footer{text-align:center;padding:24px;color:var(--muted);font-size:13px;border-top:1px solid var(--line);background:#fff}
+    .ad-top,.ad-mid,.ad-sidebar,.ad-bottom{display:flex;justify-content:center;align-items:center;margin:12px auto;overflow:hidden!important;position:relative;z-index:1!important;flex-shrink:0;transform:translateZ(0);isolation:isolate;min-height:50px;pointer-events:none}
+    .ad-top iframe,.ad-mid iframe,.ad-sidebar iframe,.ad-bottom iframe{max-width:100%!important;max-height:100%!important;border:0;display:block;pointer-events:auto!important;position:relative!important;transform:none!important}
+    .ad-top{width:100%;max-width:728px;height:90px!important;max-height:90px!important;min-height:90px}
+    .ad-mid{width:100%;max-width:728px;height:90px!important;max-height:90px!important;min-height:90px;margin:8px auto 24px}
+    .ad-sidebar{width:100%;max-width:300px;height:250px!important;max-height:250px!important;min-height:250px;border-radius:var(--radius);overflow:hidden!important;contain:strict;clip-path:inset(0)}
+    .ad-bottom{width:100%;max-width:320px;height:50px!important;max-height:50px!important;min-height:50px}
+    #ad-popunder{display:none;width:0;height:0;overflow:hidden;position:absolute;left:-9999px}
+    @media(max-width:860px){
+      .layout{grid-template-columns:1fr;grid-template-rows:auto}
+      #interactive-layer,.layout>aside{grid-column:1}
+      .form-grid,.result-grid,.goal-cards,.aux-grid{grid-template-columns:1fr}
+    }
+    @media(max-width:520px){.goal-cards{grid-template-columns:repeat(2,1fr)}}
+  </style>
+</head>
+<body>
+<script>
+(function(){
+  var AD='.ad-top,.ad-mid,.ad-sidebar,.ad-bottom';
+  function adBox(el){return el&&el.closest&&el.closest(AD);}
+  function isInteractive(el){
+    if(!el||el.nodeType!==1)return false;
+    return!!(el.closest('#interactive-layer,header,footer,section.hero,aside.sidebar .sidebar-card,details'));
+  }
+  function interactiveRect(){
+    var el=document.getElementById('interactive-layer');
+    return el?el.getBoundingClientRect():null;
+  }
+  function hitsInteractive(r){
+    var zr=interactiveRect();
+    if(!zr||!r||!r.width)return false;
+    return!(r.right<zr.left||r.left>zr.right||r.bottom<zr.top||r.top>zr.bottom);
+  }
+  function clampAd(f){
+    var box=f.closest(AD);
+    if(!box)return;
+    f.style.setProperty('position','relative','important');
+    f.style.setProperty('inset','auto','important');
+    f.style.setProperty('top','auto','important');
+    f.style.setProperty('left','auto','important');
+    f.style.setProperty('width','100%','important');
+    f.style.setProperty('height','100%','important');
+    f.style.setProperty('max-width',box.clientWidth+'px','important');
+    f.style.setProperty('max-height',box.clientHeight+'px','important');
+    f.style.setProperty('transform','none','important');
+    f.style.setProperty('display','block','important');
+    f.style.setProperty('visibility','visible','important');
+    f.style.setProperty('opacity','1','important');
+    f.style.removeProperty('pointer-events');
+  }
+  function blockRogue(el){
+    if(!el||el.nodeType!==1||isInteractive(el))return;
+    if(adBox(el)&&el.tagName!=='IFRAME')return;
+    var cs=window.getComputedStyle(el);
+    if(adBox(el)&&el.tagName==='IFRAME'){
+      clampAd(el);
+      var box=el.closest(AD),br=box.getBoundingClientRect(),fr=el.getBoundingClientRect();
+      if(hitsInteractive(fr)&&(fr.left<br.left-6||fr.right>br.right+6)){
+        el.style.setProperty('pointer-events','none','important');
+      }
+      return;
+    }
+    if(cs.position==='fixed'){
+      var fr=el.getBoundingClientRect();
+      if(fr.width>window.innerWidth*0.45||fr.height>window.innerHeight*0.45||hitsInteractive(fr)){
+        el.style.setProperty('pointer-events','none','important');
+        el.style.setProperty('display','none','important');
+      }
+      return;
+    }
+    if((el.tagName==='IFRAME'||cs.position==='absolute')&&hitsInteractive(el)){
+      el.style.setProperty('pointer-events','none','important');
+      if(el.tagName==='IFRAME')el.style.setProperty('display','none','important');
+    }
+  }
+  function scan(){
+    Array.prototype.forEach.call(document.body.children,function(el){
+      if(el.id!=='app-shell'){el.style.pointerEvents='none';}
+    });
+    document.querySelectorAll('iframe').forEach(function(f){
+      if(isInteractive(f))return;
+      if(adBox(f)){clampAd(f);return;}
+      blockRogue(f);
+    });
+    var zr=interactiveRect();
+    if(zr){
+      [[zr.left+zr.width/2,zr.top+45],[zr.left+55,zr.top+zr.height/2]].forEach(function(p){
+        var el=document.elementFromPoint(p[0],p[1]);
+        if(!el||isInteractive(el))return;
+        if(adBox(el))return;
+        blockRogue(el);
+      });
+    }
+  }
+  window.__scanAds=scan;
+  document.addEventListener('DOMContentLoaded',function(){
+    scan();
+    new MutationObserver(scan).observe(document.body,{childList:true,subtree:true});
+    setInterval(scan,400);
+  });
+})();
+</script>
+<div id="app-shell">
+<header><div class="container"><a href="#" class="logo">Rep Ranges Calculator</a></div></header>
+
+<section class="hero">
+  <div class="container">
+    <span class="hero-badge">NSCA · RP · ACSM informed</span>
+    <h1>Rep Ranges Calculator</h1>
+    <p>Find your ideal sets, reps, rest &amp; intensity for strength, hypertrophy, power, or endurance — with optional load targets from your 1RM. Inspired by Renaissance Periodization, Muscle &amp; Strength &amp; NSCA guidelines.</p>
+  </div>
+</section>
+
+<div class="container">
+  <div class="ad-top" id="ad-top">
+    <script>atOptions={'key':'b31a21d357a574f5abfe948e08497cc3','format':'iframe','height':90,'width':728,'params':{}};</script>
+    <script src="https://www.highperformanceformat.com/b31a21d357a574f5abfe948e08497cc3/invoke.js"></script>
+    <script data-cfasync="false" src="https://adsterra-xxx1.js"></script>
+  </div>
+</div>
+
+<div id="main-app">
+<div class="container">
+  <div class="layout">
+    <div id="interactive-layer">
+    <main class="card">
+      <div id="calc-zone">
+      <h2>Build your rep range plan</h2>
+      <p class="sub">Select a primary training goal and optional 1RM to get rep ranges, set counts, rest periods, RPE targets, and a sample session — aligned with evidence-based resistance training guidelines.</p>
+
+      <div class="sec-label" style="margin-top:0">Primary training goal</div>
+      <div class="goal-cards">
+        <label class="goal-card"><input type="radio" name="goal" value="strength" checked><div class="gc-icon">🏋️</div><div class="gc-name">Strength</div><div class="gc-reps">1–5 reps</div></label>
+        <label class="goal-card"><input type="radio" name="goal" value="hypertrophy"><div class="gc-icon">💪</div><div class="gc-name">Hypertrophy</div><div class="gc-reps">6–12 reps</div></label>
+        <label class="goal-card"><input type="radio" name="goal" value="power"><div class="gc-icon">⚡</div><div class="gc-name">Power</div><div class="gc-reps">1–3 explosive</div></label>
+        <label class="goal-card"><input type="radio" name="goal" value="endurance"><div class="gc-icon">🔄</div><div class="gc-name">Endurance</div><div class="gc-reps">15–25+ reps</div></label>
+        <label class="goal-card"><input type="radio" name="goal" value="fatloss"><div class="gc-icon">🔥</div><div class="gc-name">Fat loss</div><div class="gc-reps">8–15 reps</div></label>
+        <label class="goal-card"><input type="radio" name="goal" value="general"><div class="gc-icon">✓</div><div class="gc-name">General fitness</div><div class="gc-reps">8–12 reps</div></label>
+      </div>
+
+      <div class="unit-toggle">
+        <button type="button" class="unit-btn active" id="unitLbs" onclick="setUnit('lbs');return false;">Pounds (lbs)</button>
+        <button type="button" class="unit-btn" id="unitKg" onclick="setUnit('kg');return false;">Kilograms (kg)</button>
+      </div>
+
+      <div class="form-grid">
+        <div>
+          <label for="oneRM">Estimated 1RM (optional)</label>
+          <input type="number" class="input" id="oneRM" min="0" step="2.5" placeholder="e.g. 225 — for load targets">
+        </div>
+        <div>
+          <label for="liftType">Main lift / movement</label>
+          <select class="select" id="liftType">
+            <option value="squat">Squat</option>
+            <option value="bench" selected>Bench press</option>
+            <option value="deadlift">Deadlift</option>
+            <option value="ohp">Overhead press</option>
+            <option value="row">Barbell row</option>
+            <option value="general">General / machine</option>
+          </select>
+        </div>
+        <div>
+          <label for="experience">Training experience</label>
+          <select class="select" id="experience">
+            <option value="beginner">Beginner (&lt;6 months)</option>
+            <option value="intermediate" selected>Intermediate (6 mo – 3 yr)</option>
+            <option value="advanced">Advanced (3+ years)</option>
+          </select>
+        </div>
+        <div>
+          <label for="daysWeek">Training days per week</label>
+          <select class="select" id="daysWeek">
+            <option value="2">2 days</option>
+            <option value="3" selected>3 days</option>
+            <option value="4">4 days</option>
+            <option value="5">5 days</option>
+            <option value="6">6 days</option>
+          </select>
+        </div>
+      </div>
+
+      <p class="hint">Rep ranges overlap — strength work still builds muscle and moderate reps still build strength. Pick a primary goal for 70–80% of weekly volume; sprinkle other zones for balance (NSCA recommendation).</p>
+
+      <div class="btn-row">
+        <button type="button" class="btn-main" id="btnCalc" onclick="calculate();return false;">Calculate rep ranges</button>
+        <button type="button" class="btn-ghost" id="btnReset" onclick="resetForm();return false;">Reset</button>
+      </div>
+
+      <div class="results" id="results"></div>
+      </div>
+    </main>
+
+    <div class="aux-grid" id="aux-panel">
+      <div class="sidebar-card">
+        <h3>Quick example</h3>
+        <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:10px">Hypertrophy · bench 1RM 225 lbs · 4 days/wk → 4×8–10 @ ~175 lbs (75–80%), 90 sec rest.</p>
+        <button type="button" class="btn-ghost" style="width:100%" id="btnExample" onclick="loadExample();return false;">Load hypertrophy example</button>
+      </div>
+      <div class="sidebar-card">
+        <h3>Classic rep range rules</h3>
+        <ul style="list-style:none;font-size:12px;color:var(--muted);line-height:1.9">
+          <li>· Strength: heavy, long rest, low reps</li>
+          <li>· Hypertrophy: moderate load, 6–12 reps</li>
+          <li>· Endurance: light, high reps, short rest</li>
+          <li>· Mix zones across mesocycles</li>
+        </ul>
+      </div>
+    </div>
+    </div>
+
+    <aside class="sidebar">
+      <div class="sidebar-card">
+        <h3>Rep range spectrum</h3>
+        <table class="ref-table">
+          <tr><td>1–5 reps</td><td>Strength</td></tr>
+          <tr><td>1–3 reps</td><td>Power (explosive)</td></tr>
+          <tr><td>6–12 reps</td><td>Hypertrophy</td></tr>
+          <tr><td>8–15 reps</td><td>Fat loss / metabolic</td></tr>
+          <tr><td>15–25+ reps</td><td>Endurance</td></tr>
+          <tr><td>8–12 reps</td><td>General fitness</td></tr>
+        </table>
+      </div>
+      <div class="sidebar-card">
+        <h3>Rest period guide</h3>
+        <table class="ref-table">
+          <tr><td>Strength / power</td><td>2–5 min</td></tr>
+          <tr><td>Hypertrophy</td><td>60–120 sec</td></tr>
+          <tr><td>Endurance</td><td>30–60 sec</td></tr>
+          <tr><td>Supersets</td><td>30–45 sec</td></tr>
+        </table>
+      </div>
+      <div class="ad-sidebar" id="ad-sidebar">
+        <script>atOptions={'key':'5b2625d96c11d7b599cea160717bc0f6','format':'iframe','height':250,'width':300,'params':{}};</script>
+        <script src="https://www.highperformanceformat.com/5b2625d96c11d7b599cea160717bc0f6/invoke.js"></script>
+      </div>
+    </aside>
+  </div>
+
+  <div class="ad-mid" id="ad-mid">
+    <script data-cfasync="false" src="https://adsterra-xxx2.js"></script>
+  </div>
+
+  <section style="margin-bottom:28px">
+    <h2 style="font-size:18px;font-weight:800;margin-bottom:12px">FAQ</h2>
+    <details>
+      <summary>What is the best rep range for muscle growth?</summary>
+      <p>Research shows hypertrophy occurs across a wide range (roughly 5–30 reps) if sets are taken close to failure. The classic 6–12 rep range balances load and time under tension. Renaissance Periodization recommends varying rep ranges within a week — e.g., heavy 5–8, moderate 8–12, light 15–20 — for optimal stimulus.</p>
+    </details>
+    <details>
+      <summary>How many reps for strength vs hypertrophy?</summary>
+      <p>NSCA guidelines: 1–5 reps at 85–100% 1RM for maximal strength; 6–12 reps at 67–85% for hypertrophy. In practice, most programs blend both — strength blocks build the load you can use for hypertrophy sets later.</p>
+    </details>
+    <details>
+      <summary>How long should I rest between sets?</summary>
+      <p>Match rest to the goal: 2–5 minutes for heavy strength (ATP recovery), 60–90 seconds for hypertrophy (metabolic stress), 30–60 seconds for muscular endurance. Short rests with heavy loads compromise performance and increase injury risk.</p>
+    </details>
+    <details>
+      <summary>What is RPE and RIR?</summary>
+      <p>RPE (Rate of Perceived Exertion) scales effort 1–10; RIR (Reps in Reserve) counts reps left in the tank. For strength, stop at RPE 8–9 (1–2 RIR). For hypertrophy, RPE 7–9 (1–3 RIR) on most working sets is standard in RP-style programming.</p>
+    </details>
+    <details>
+      <summary>Can I combine rep ranges in one program?</summary>
+      <p>Yes — periodization is the norm. A typical week might include a heavy 3×5 day (strength), a 4×8–10 day (hypertrophy), and optional 2×15–20 finisher work. Align 70% of volume with your primary goal and use the rest for weak points or variety.</p>
+    </details>
+  </section>
+</div>
+</div>
+
+<div class="container">
+  <div class="ad-bottom" id="ad-bottom">
+    <script>atOptions={'key':'5a3667e1a909df26029e97d7d01cf2b5','format':'iframe','height':50,'width':320,'params':{}};</script>
+    <script src="https://www.highperformanceformat.com/5a3667e1a909df26029e97d7d01cf2b5/invoke.js"></script>
+    <script data-cfasync="false" src="https://adsterra-xxx3.js"></script>
+  </div>
+</div>
+
+<div id="ad-popunder" aria-hidden="true"></div>
+
+<footer>
+  <div class="container">Rep Ranges Calculator — inspired by <a href="https://www.nsca.com" style="color:var(--primary)">NSCA</a>, Renaissance Periodization &amp; ACSM resistance training guidelines. Not medical advice.</div>
+</footer>
+</div>
+
+<script>
+function byId(id){return document.getElementById(id);}
+
+var currentUnit='lbs';
+
+var GOALS={
+  strength:{
+    name:'Maximal Strength',icon:'🏋️',repMin:1,repMax:5,repDisplay:'1–5 reps',
+    pctMin:85,pctMax:100,setsMin:3,setsMax:5,rest:'2–5 min',rpe:'RPE 8–9 · 1–2 RIR',
+    tempo:'Controlled eccentric · explosive concentric',freq:'2–3× per lift/week',
+    volume:'10–20 hard sets/muscle/week (advanced)',desc:'Maximize neural drive and force output. Prioritize compound lifts with full recovery between sets.'
+  },
+  hypertrophy:{
+    name:'Muscle Hypertrophy',icon:'💪',repMin:6,repMax:12,repDisplay:'6–12 reps',
+    pctMin:67,pctMax:85,setsMin:3,setsMax:4,rest:'60–120 sec',rpe:'RPE 7–9 · 1–3 RIR',
+    tempo:'2–3 sec eccentric · 1 sec pause optional',freq:'2× per muscle/week',
+    volume:'12–20 hard sets/muscle/week',desc:'Primary muscle-building zone. Moderate loads with sufficient volume and proximity to failure.'
+  },
+  power:{
+    name:'Power / Explosive',icon:'⚡',repMin:1,repMax:3,repDisplay:'1–3 reps (explosive)',
+    pctMin:75,pctMax:90,setsMin:3,setsMax:6,rest:'2–5 min',rpe:'RPE 7–8 · move fast',
+    tempo:'Explosive concentric · reset each rep',freq:'2× per week per pattern',
+    volume:'15–25 total reps/exercise/session',desc:'Move the bar as fast as possible. Stop set when bar speed drops noticeably — not when you grind.'
+  },
+  endurance:{
+    name:'Muscular Endurance',icon:'🔄',repMin:15,repMax:25,repDisplay:'15–25+ reps',
+    pctMin:40,pctMax:60,setsMin:2,setsMax:4,rest:'30–60 sec',rpe:'RPE 7–8 · burn focus',
+    tempo:'Controlled · continuous tension',freq:'2–3× per week',
+    volume:'Higher rep sets · circuit-friendly',desc:'Build local muscular endurance and work capacity. Ideal for accessories, rehab, and conditioning blocks.'
+  },
+  fatloss:{
+    name:'Fat Loss / Metabolic',icon:'🔥',repMin:8,repMax:15,repDisplay:'8–15 reps',
+    pctMin:60,pctMax:75,setsMin:3,setsMax:4,rest:'45–75 sec',rpe:'RPE 7–8 · short rest',
+    tempo:'Moderate · supersets encouraged',freq:'3–4× full-body/week',
+    volume:'Maintain muscle · caloric deficit drives fat loss',desc:'Moderate reps with limited rest preserve lean mass while dieting. Pair with protein 1.6–2.2 g/kg and progressive overload.'
+  },
+  general:{
+    name:'General Fitness',icon:'✓',repMin:8,repMax:12,repDisplay:'8–12 reps',
+    pctMin:60,pctMax:75,setsMin:2,setsMax:3,rest:'60–90 sec',rpe:'RPE 6–8 · leave 2–3 RIR',
+    tempo:'Controlled · full range of motion',freq:'2–3× full-body/week',
+    volume:'8–12 hard sets/muscle/week',desc:'Balanced rep range for health, strength, and moderate muscle gain. ACSM minimum: 2 days/week resistance training.'
+  }
+};
+
+var LIFT_NAMES={
+  squat:'Back squat',bench:'Bench press',deadlift:'Deadlift',ohp:'Overhead press',row:'Barbell row',general:'Main compound'
+};
+
+var ALL_ZONES=[
+  {id:'strength',label:'Strength',reps:'1–5',pct:'85–100%',rest:'2–5 min'},
+  {id:'power',label:'Power',reps:'1–3',pct:'75–90%',rest:'2–5 min'},
+  {id:'hypertrophy',label:'Hypertrophy',reps:'6–12',pct:'67–85%',rest:'60–120 s'},
+  {id:'fatloss',label:'Fat loss',reps:'8–15',pct:'60–75%',rest:'45–75 s'},
+  {id:'endurance',label:'Endurance',reps:'15–25+',pct:'40–60%',rest:'30–60 s'},
+  {id:'general',label:'General',reps:'8–12',pct:'60–75%',rest:'60–90 s'}
+];
+
+function getGoal(){return document.querySelector('input[name="goal"]:checked').value;}
+
+function setUnit(u){
+  if(u===currentUnit)return;
+  var rm=parseFloat(byId('oneRM').value)||0;
+  if(rm>0){
+    byId('oneRM').value=u==='kg'?round1(rm/2.20462):round1(rm*2.20462);
+  }
+  currentUnit=u;
+  byId('unitLbs').classList.toggle('active',u==='lbs');
+  byId('unitKg').classList.toggle('active',u==='kg');
+}
+
+function round1(n){return Math.round(n*10)/10;}
+
+function fmtWt(n){
+  if(!n)return '—';
+  return round1(n)+' '+currentUnit;
+}
+
+function weightAtPct(oneRM,pct){
+  return oneRM?round1(oneRM*pct/100):null;
+}
+
+function adjustForExperience(g,exp){
+  var sets=g.setsMax;
+  var setsMin=g.setsMin;
+  if(exp==='beginner'){sets=Math.max(setsMin,setsMin);setsMin=Math.max(2,setsMin-1);}
+  if(exp==='advanced'){setsMin=setsMin;sets=sets+1;}
+  return{setsMin:setsMin,setsMax:sets};
+}
+
+function buildSampleWorkout(goal,oneRM,lift,exp,days){
+  var g=GOALS[goal];
+  var adj=adjustForExperience(g,exp);
+  var midPct=Math.round((g.pctMin+g.pctMax)/2);
+  var w=weightAtPct(oneRM,midPct);
+  var wLow=weightAtPct(oneRM,g.pctMin);
+  var wHigh=weightAtPct(oneRM,g.pctMax);
+  var liftName=LIFT_NAMES[lift];
+  var exercises=[];
+
+  exercises.push({
+    name:liftName+' (primary)',
+    detail:adj.setsMin+'–'+adj.setsMax+' × '+g.repDisplay+' @ '+g.pctMin+'–'+g.pctMax+'%'+(w?' (~'+fmtWt(w)+')':'')+' · '+g.rest+' rest'
+  });
+
+  if(goal==='hypertrophy'){
+    exercises.push({name:'Accessory (same muscle)',detail:'3 × 10–15 @ RPE 8 · 60 sec rest'});
+    exercises.push({name:'Optional finisher',detail:'2 × 15–20 @ 50–60% · pump focus'});
+  }else if(goal==='strength'){
+    exercises.push({name:liftName+' (back-off)',detail:'2–3 × '+Math.min(g.repMax+2,8)+' @ 70–75%'+(wLow?' (~'+fmtWt(weightAtPct(oneRM,72))+')':'')});
+    exercises.push({name:'Core / stability',detail:'3 × 8–12 · supports heavy lifting'});
+  }else if(goal==='power'){
+    exercises.push({name:liftName+' (speed)',detail:'6 × 2 @ 75% · max bar speed'});
+    exercises.push({name:'Jump / throw (optional)',detail:'3–5 × 3 · plyometric contrast'});
+  }else if(goal==='endurance'){
+    exercises.push({name:liftName+' (circuit)',detail:'3 × 20 @ 50% · 45 sec rest'});
+    exercises.push({name:'Bodyweight accessory',detail:'3 × 15–25 · minimal rest'});
+  }else if(goal==='fatloss'){
+    exercises.push({name:'Superset A + B',detail:'3 rounds · 10–12 reps each · 45 sec between pairs'});
+    exercises.push({name:'Finisher (optional)',detail:'AMRAP 8 min · moderate load'});
+  }else{
+    exercises.push({name:'Second compound',detail:'3 × 8–10 @ moderate load'});
+    exercises.push({name:'Accessory',detail:'2 × 12–15 · full ROM'});
+  }
+
+  return exercises;
+}
+
+function getTips(goal,exp,days,oneRM){
+  var g=GOALS[goal];
+  var tips=[];
+  tips.push({title:'Primary rep target',desc:g.repDisplay+' at '+g.pctMin+'–'+g.pctMax+'% 1RM · '+g.rpe});
+  tips.push({title:'Weekly structure',desc:g.freq+' on a '+days+'-day split. '+g.volume+'.'});
+  tips.push({title:'Tempo & execution',desc:g.tempo});
+  if(oneRM){
+    tips.push({title:'Load targets',desc:'Working weight ~'+fmtWt(weightAtPct(oneRM,(g.pctMin+g.pctMax)/2))+' (mid-range). Warm up: 50% × 5, 70% × 3, then work sets.'});
+  }else{
+    tips.push({title:'No 1RM entered',desc:'Use RPE/RIR to auto-regulate load. Add your 1RM for exact weight prescriptions.'});
+  }
+  if(exp==='beginner'){
+    tips.push({title:'Beginner note',desc:'Start at the low end of set/rep ranges. Master form before pushing RPE 9+.'});
+  }
+  if(goal==='hypertrophy'){
+    tips.push({title:'RP-style tip',desc:'Rotate rep ranges weekly: heavy 5–8, moderate 8–12, light 15–20 for the same muscle.'});
+  }
+  return tips;
+}
+
+function compute(){
+  var goal=getGoal();
+  var g=GOALS[goal];
+  var oneRM=parseFloat(byId('oneRM').value)||0;
+  var lift=byId('liftType').value;
+  var exp=byId('experience').value;
+  var days=parseInt(byId('daysWeek').value,10);
+  var adj=adjustForExperience(g,exp);
+
+  return{
+    goal,g,oneRM,lift,exp,days,adj,
+    exercises:buildSampleWorkout(goal,oneRM,lift,exp,days),
+    tips:getTips(goal,exp,days,oneRM),
+    unit:currentUnit
+  };
+}
+
+function calculate(){
+  try{
+    var r=compute();
+    var res=byId('results');
+    var g=r.g;
+    var midPct=Math.round((g.pctMin+g.pctMax)/2);
+
+    var zoneRows=ALL_ZONES.map(function(z){
+      var cls=z.id===r.goal?' class="active"':'';
+      return '<tr'+cls+'><td>'+z.label+'</td><td>'+z.reps+'</td><td>'+z.pct+'</td><td>'+z.rest+'</td></tr>';
+    }).join('');
+
+    var markerPct={strength:10,power:28,hypertrophy:50,fatloss:62,endurance:82,general:50};
+    var mp=markerPct[r.goal]||50;
+
+    var exHtml=r.exercises.map(function(ex){
+      return '<div class="exercise"><span class="ex-name">'+ex.name+'</span><span class="ex-detail">'+ex.detail+'</span></div>';
+    }).join('');
+
+    var tipsHtml=r.tips.map(function(t,i){
+      return '<div class="prog-item"><span class="icon">'+(i+1)+'</span><div><div class="pt">'+t.title+'</div><div class="pd">'+t.desc+'</div></div></div>';
+    }).join('');
+
+    res.innerHTML=
+      '<div class="result-hero '+r.goal+'"><div class="lbl">Your rep range plan</div><div class="val">'+g.repDisplay+'</div><div class="sub">'+g.name+' · '+r.adj.setsMin+'–'+r.adj.setsMax+' sets · '+g.rest+' rest · '+g.pctMin+'–'+g.pctMax+'% 1RM</div></div>'+
+      '<div class="result-grid">'+
+        '<div class="result-cell"><div class="k">Rep range</div><div class="v">'+g.repDisplay+'</div></div>'+
+        '<div class="result-cell"><div class="k">Intensity</div><div class="v">'+g.pctMin+'–'+g.pctMax+'%</div></div>'+
+        '<div class="result-cell"><div class="k">Working load</div><div class="v">'+(r.oneRM?fmtWt(weightAtPct(r.oneRM,midPct)):'Use RPE')+'</div></div>'+
+        '<div class="result-cell"><div class="k">Sets / exercise</div><div class="v">'+r.adj.setsMin+'–'+r.adj.setsMax+'</div></div>'+
+        '<div class="result-cell"><div class="k">Rest</div><div class="v">'+g.rest+'</div></div>'+
+        '<div class="result-cell"><div class="k">Effort target</div><div class="v">'+g.rpe+'</div></div>'+
+      '</div>'+
+      '<div class="zone-bar" aria-hidden="true">'+
+        '<div class="zone-seg str" style="flex:15">1–5</div>'+
+        '<div class="zone-seg pow" style="flex:10">POW</div>'+
+        '<div class="zone-seg hyp" style="flex:25">6–12</div>'+
+        '<div class="zone-seg end" style="flex:20">15+</div>'+
+      '</div>'+
+      '<div class="zone-marker"><span style="left:'+mp+'%">'+g.name+'</span></div>'+
+      '<p style="font-size:13px;color:var(--muted);margin-bottom:12px">'+g.desc+'</p>'+
+      '<h3 style="font-size:14px;font-weight:800;margin-bottom:8px">All training zones compared</h3>'+
+      '<table class="zone-table"><thead><tr><th>Goal</th><th>Reps</th><th>% 1RM</th><th>Rest</th></tr></thead><tbody>'+zoneRows+'</tbody></table>'+
+      (r.oneRM?'<table class="summary-table" style="margin:16px 0">'+
+        '<tr><td>Your 1RM</td><td>'+fmtWt(r.oneRM)+'</td></tr>'+
+        '<tr><td>Low end ('+g.pctMin+'%)</td><td>'+fmtWt(weightAtPct(r.oneRM,g.pctMin))+'</td></tr>'+
+        '<tr><td>High end ('+g.pctMax+'%)</td><td>'+fmtWt(weightAtPct(r.oneRM,g.pctMax))+'</td></tr>'+
+        '<tr><td>Main lift</td><td>'+LIFT_NAMES[r.lift]+'</td></tr>'+
+      '</table>':'')+
+      '<div class="sample-workout"><h3>Sample '+days+'-day session · '+LIFT_NAMES[r.lift]+'</h3>'+exHtml+'</div>'+
+      '<h3 style="font-size:14px;font-weight:800;margin:16px 0 8px">Programming notes</h3>'+
+      '<div class="prog-list">'+tipsHtml+'</div>'+
+      '<p class="tip-box"><strong>Periodization tip:</strong> Run this rep range for 4–6 weeks, then shift zones — e.g., hypertrophy block → strength block — to avoid plateaus (Muscle &amp; Strength / RP approach).</p>'+
+      '<p class="note-box"><strong>Disclaimer:</strong> Individual recovery, age, and injury history affect optimal volume. Adjust sets downward if performance or sleep declines week over week.</p>'+
+      '<div class="btn-row" style="margin-top:14px"><button type="button" class="btn-ghost" id="btnCopy">Copy summary</button></div>';
+
+    res.classList.add('show');
+    window._lastResult=res.innerText;
+    var copyBtn=byId('btnCopy');
+    if(copyBtn)copyBtn.addEventListener('click',copyResults);
+    res.scrollIntoView({behavior:'smooth',block:'nearest'});
+  }catch(err){
+    console.error(err);
+    alert('Calculation error. Please refresh and try again.');
+  }
+}
+
+function resetForm(){
+  currentUnit='lbs';
+  byId('unitLbs').classList.add('active');
+  byId('unitKg').classList.remove('active');
+  document.querySelector('input[name="goal"][value="strength"]').checked=true;
+  byId('oneRM').value='';
+  byId('liftType').value='bench';
+  byId('experience').value='intermediate';
+  byId('daysWeek').value='3';
+  byId('results').classList.remove('show');
+  byId('results').innerHTML='';
+}
+
+function loadExample(){
+  resetForm();
+  document.querySelector('input[name="goal"][value="hypertrophy"]').checked=true;
+  byId('oneRM').value='225';
+  byId('liftType').value='bench';
+  byId('daysWeek').value='4';
+  calculate();
+}
+
+function copyResults(){
+  var t=window._lastResult||'';
+  if(!t)return;
+  navigator.clipboard.writeText(t.replace(/\s+/g,' ').trim()).then(function(){alert('Copied!');}).catch(function(){});
+}
+
+function init(){
+  byId('btnCalc').addEventListener('click',function(e){e.stopPropagation();calculate();});
+  byId('btnReset').addEventListener('click',function(e){e.stopPropagation();resetForm();});
+  byId('btnExample').addEventListener('click',function(e){e.stopPropagation();loadExample();});
+}
+
+window.calculate=calculate;
+window.resetForm=resetForm;
+window.loadExample=loadExample;
+window.setUnit=setUnit;
+window.copyResults=copyResults;
+
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
+else init();
+</script>
+</body>
+</html>
